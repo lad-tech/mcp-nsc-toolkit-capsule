@@ -96,6 +96,109 @@ npm install nats
 2.  **Структура:** Строго следуйте предоставленной JSON Schema. Все поля, помеченные `"required"`, должны быть заполнены.
 3.  **Именование:** Используйте соглашение `PascalCase` для имен сервисов, методов и событий внутри схемы (например, `"Math"`, `"Sum"`, `"Elapsed"`). Поле `action` должно быть в `camelCase` (например, `"sum"`, `"userCreated"`).
 
+**Схема `service.schema.json`**
+```
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "methods": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "action": { "type": "string" },
+          "description": { "type": "string" },
+          "options": { "$ref": "#/$defs/options" },
+          "request": { "type": "object" },
+          "response": { "type": "object" }
+        },
+        "required": ["action", "description", "options"]
+      }
+    },
+    "events": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "action": { "type": "string" },
+              "options": {
+                "type": "object",
+                "properties": {
+                  "stream": { "type": "boolean" }
+                },
+              },
+              "description": { "type": "string" },
+              "event": { "type": "object" }
+            },
+            "required": ["action", "description", "event"]
+          },
+        },
+        "streamOptions": {
+          "type": "object",
+          "properties": {
+            "prefix": { "type": "string" },
+            "actions": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "action": { "type": "string" },
+                  "storage": { "type": "string" },
+                  "retentionPolicy": { "type": "string" },
+                  "discardPolicy": { "type": "string" },
+                  "messageTTL": { "type": "number" },
+                  "duplicateTrackingTime": { "type": "number" },
+                  "replication": { "type": "number" },
+                  "rollUps": { "type": "boolean" }
+                },
+                "required": ["action"]
+              }
+            }
+          },
+          "required": ["prefix", "actions"]
+        }
+      },
+      "required": ["list"]
+    }
+  },
+  "required": ["name", "description", "methods"],
+
+  "$defs": {
+    "options": {
+      "type": "object",
+      "properties": {
+        "useStream": {
+          "type": "object",
+          "properties": {
+            "request": { "type": "boolean" },
+            "response": { "type": "boolean" }
+          }
+        },
+        "cache": { "type": "number" },
+        "runTimeValidation": {
+          "type": "object",
+          "properties": {
+            "request": { "type": "boolean" },
+            "response": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+**ПРИМЕР**
 ```json
 {
   "name": "Math",
@@ -189,6 +292,7 @@ npm install nats
 - Используйте `this.logger` для логирования.
 - Используйте `this.emitter` для генерации событий.
 
+**ПРИМЕР**
 ```typescript
 // Файл: methods/Sum/index.ts
 import { SumRequest, SumResponse, EmitterMath } from '../../interfaces.js';
@@ -231,12 +335,14 @@ export class Sum extends BaseMethod<EmitterMath> {
 - Типы событий (например, `CalculationElapsedEvent`).
 - Типы эмиттеров: `Emitter{ServiceName}` для использования внутри сервиса и `Emitter{ServiceName}External` для использования клиентом.
 
+
+**ПРИМЕР**
 ```typescript
 // Файл: interfaces.ts (Автогенерация на основе service.schema.json)
 import type { EventStreamHandler, Emitter } from '@lad-tech/nsc-toolkit';
 
-// Типы для метода Sum
-export interface SumRequest { a: number; b: number; }
+// Типы для метода Sum. ПРАВИЛО: Тип запроса (Request) ВСЕГДА ДОЛЖЕН содержать index signature (сигнатура индекса) [k: string]: unknown | undefined;
+export interface SumRequest { a: number; b: number; [k: string]: unknown | undefined; }
 export interface SumResponse { result: number; }
 
 // Типы для события CalculationElapsed
@@ -257,6 +363,7 @@ export type EmitterMathExternal = {
 
 Файл `index.ts` предоставляет класс-клиент для вызова методов сервиса извне. Он расширяет базовый класс `Client`.
 
+**ПРИМЕР**
 ```typescript
 // Файл: index.ts (Часто автогенерируется)
 import { Client, Baggage, CacheSettings } from '@lad-tech/nsc-toolkit';
@@ -296,6 +403,7 @@ export default class MathClient extends Client<EmitterMathExternal> {
 
 Определите все ключи для зависимостей в одном файле.
 
+**ПРИМЕР**
 ```typescript
 // Файл: inversion.types.ts
 export const TYPES = {
@@ -318,6 +426,7 @@ export const TYPES = {
 - `DependencyType.ADAPTER`: Для реализаций портов (репозитории, внешние API). Может иметь опции `singleton: true` или `init: true`.
 - `DependencyType.CONSTANT`: Для статических объектов (конфиги).
 
+**ПРИМЕР**
 ```typescript
 // Файл: service.ts
 import { Service, DependencyType, container } from '@lad-tech/nsc-toolkit';

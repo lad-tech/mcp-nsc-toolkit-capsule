@@ -1,0 +1,8 @@
+.prettierrc.json
+services/**/tsconfig.json
+.cache
+build
+coverage
+package.json
+package-lock.json 
+node_modules 

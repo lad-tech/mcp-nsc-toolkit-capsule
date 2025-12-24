@@ -1,0 +1,44 @@
+{
+  "name": "mcp-nsc-toolkit-capsule",
+  "version": "1.0.0",
+  "description": "MCP server for nsc-toolkit capsule framework documentation",
+  "type": "module",
+  "main": "dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./*": {
+      "types": "./dist/*.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js",
+    "dev": "ts-node src/index.ts"
+  },
+  "keywords": [
+    "mcp",
+    "nsc-toolkit",
+    "documentation"
+  ],
+  "author": "NSC Toolkit Team",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.23.0",
+    "express": "^5.1.0",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.5",
+    "@types/node": "^24.10.1",
+    "@typescript-eslint/eslint-plugin": "^8.48.0",
+    "@typescript-eslint/parser": "^8.48.0",
+    "eslint": "^9.39.1",
+    "eslint-plugin-perfectionist": "^4.15.1",
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

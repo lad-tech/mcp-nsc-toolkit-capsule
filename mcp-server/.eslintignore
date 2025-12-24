@@ -1,0 +1,6 @@
+*.test.ts
+*.spec.ts
+*/__mocks__/*.ts
+*/__stubs__/*.ts
+*/node_modules/*
+*.js
